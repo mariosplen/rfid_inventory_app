@@ -10,6 +10,12 @@ class InventoriesCubit extends Cubit<InventoriesState> {
 
   void loadInventories() {
     final inventoriesBox = Hive.box<InventoryModel>("inventories");
+    // todo: check, that it causes some issue with rebuilding on inventory page builder
+    emit(
+      state.copyWith(
+        inventories: [],
+      ),
+    );
     emit(
       state.copyWith(
         inventories: inventoriesBox.values.toList(),
