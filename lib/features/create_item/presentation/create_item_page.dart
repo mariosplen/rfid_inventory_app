@@ -174,8 +174,9 @@ class _CreateItemPageState extends State<CreateItemPage> {
                         Row(
                           children: [
                             ElevatedButton.icon(
-                              onPressed:
-                                  context.read<CreateItemCubit>().autoFill,
+                              onPressed: state.item.image.isEmpty
+                                  ? null
+                                  : context.read<CreateItemCubit>().autoFill,
                               label: const Text(
                                 "Auto Fill with AI",
                                 style: TextStyle(

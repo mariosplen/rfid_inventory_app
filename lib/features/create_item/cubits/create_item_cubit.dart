@@ -271,6 +271,7 @@ class CreateItemCubit extends Cubit<CreateItemState> {
         aiSuccess: false,
       ),
     );
+    emit(state.copyWith(aiError: false));
   }
 
   (
