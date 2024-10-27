@@ -124,7 +124,7 @@ class _CreateItemPageState extends State<CreateItemPage> {
                         TextFormField(
                           initialValue: state.item.epc,
                           decoration: InputDecoration(
-                            hintText: "EPC",
+                            labelText: "EPC",
                             errorText: state.epcError,
                             helperText: ' ',
                           ),
@@ -137,91 +137,167 @@ class _CreateItemPageState extends State<CreateItemPage> {
                             borderRadius: BorderRadius.circular(12),
                             color: Colors.blueGrey[400],
                           ),
-                          child: Image.file(
-                            File(
-                              state.item.image,
-                            ),
-                            errorBuilder: (context, error, stackTrace) {
-                              return InkWell(
-                                borderRadius: BorderRadius.circular(12),
-                                child: const SizedBox(
-                                  height: 200,
-                                  child: FittedBox(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(12.0),
-                                      child: Icon(
-                                        Icons.add_a_photo_rounded,
-                                        color: Colors.white,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () {
+                              _onImagePickerTapped(context);
+                            },
+                            child: Image.file(
+                              File(
+                                state.item.image,
+                              ),
+                              height: 200,
+                              errorBuilder: (context, error, stackTrace) {
+                                return InkWell(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: const SizedBox(
+                                    height: 200,
+                                    child: FittedBox(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(12.0),
+                                        child: Icon(
+                                          Icons.add_a_photo_rounded,
+                                          color: Colors.white,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                onTap: () {
-                                  _onImagePickerTapped(context);
-                                },
-                              );
-                            },
+                                  onTap: () {
+                                    _onImagePickerTapped(context);
+                                  },
+                                );
+                              },
+                            ),
                           ),
                         ),
-                        Gap(20),
+                        const Gap(20),
                         Row(
                           children: [
-                            ElevatedButton(
+                            ElevatedButton.icon(
                               onPressed:
                                   context.read<CreateItemCubit>().autoFill,
-                              child: const Text("Autofill with AI"),
+                              label: const Text(
+                                "Auto Fill with AI",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.primary,
+                                iconColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              icon: const Icon(Icons.auto_awesome),
                             ),
-                            const Expanded(
-                              child: Text(
-                                'This feature requires an active internet connection',
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(8, 8, 0, 8),
+                                child: Text(
+                                  'This feature requires an active internet connection',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
                               ),
                             ),
                           ],
                         ),
+                        const Gap(20),
                         TextFormField(
                           controller: _nameController,
                           decoration: InputDecoration(
-                            hintText: "Name",
+                            labelText: "Name",
                             errorText: state.nameError,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                           onChanged: (value) => context
                               .read<CreateItemCubit>()
                               .onNameChanged(value),
                         ),
+                        const Gap(20),
                         TextFormField(
                           controller: _categoryController,
                           decoration: InputDecoration(
-                            hintText: "Category",
+                            labelText: "Category",
                             errorText: state.categoryError,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                           onChanged: (value) => context
                               .read<CreateItemCubit>()
                               .onCategoryChanged(value),
                         ),
-                        Builder(
-                          builder: (context) {
-                            final tags = state.item.tags;
-                            return TagEditor(
-                              length: tags.length,
-                              delimiters: const [',', ' '],
-                              hasAddButton: false,
-                              inputDecoration: InputDecoration(
-                                border: InputBorder.none,
-                                hintText: 'Hint Text...',
-                                errorText: state.tagsError,
-                              ),
-                              onTagChanged: (tag) => context
-                                  .read<CreateItemCubit>()
-                                  .onTagAdded(tag),
-                              tagBuilder: (context, index) => Chip(
-                                label: Text(tags[index]),
-                              ),
-                            );
-                          },
+                        const Gap(20),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Builder(
+                            builder: (context) {
+                              final tags = state.item.tags;
+                              return TagEditor(
+                                length: tags.length,
+                                delimiters: const [',', ' '],
+                                hasAddButton: false,
+                                inputDecoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  hintText: 'Small, Expensive, ...',
+                                  errorText: state.tagsError,
+                                  helperText: ' ',
+                                  label: tags.isNotEmpty
+                                      ? null
+                                      : const Text('Tags'),
+                                ),
+                                onTagChanged: (tag) => context
+                                    .read<CreateItemCubit>()
+                                    .onTagAdded(tag),
+                                tagBuilder: (context, index) => Chip(
+                                  label: Text(tags[index]),
+                                  onDeleted: () => context
+                                      .read<CreateItemCubit>()
+                                      .onTagRemoved(index),
+                                ),
+                              );
+                            },
+                          ),
                         ),
+                        Text(
+                          'Separate tags with commas or spaces',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                        const Gap(20),
                         ColorPicker(
-                          title: const Text("Pick a color"),
+                          title: Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              "Pick a color",
+                              style: TextStyle(
+                                fontSize: 17,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
                           enableShadesSelection: false,
+                          padding: const EdgeInsets.all(0),
+                          spacing: 10,
+                          runSpacing: 10,
+                          width: 70,
+                          height: 70,
                           pickersEnabled: const <ColorPickerType, bool>{
                             ColorPickerType.custom: true,
                             ColorPickerType.accent: false,
@@ -246,6 +322,7 @@ class _CreateItemPageState extends State<CreateItemPage> {
                                         .colorStringToName[color.toString()]!,
                                   ),
                         ),
+                        const Gap(40),
                         DropdownMenu(
                           dropdownMenuEntries: menuEntries,
                           hintText: "Select an inventory",
@@ -254,13 +331,28 @@ class _CreateItemPageState extends State<CreateItemPage> {
                               .onInventoryChanged(value),
                           errorText: state.inventoryError,
                           initialSelection: selectedEntry,
+                          width: double.infinity,
+                          leadingIcon: const Icon(Icons.store),
+                          inputDecorationTheme: InputDecorationTheme(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
                         ),
-                        ElevatedButton(
-                          onPressed: () {
-                            context.read<CreateItemCubit>().onSubmitItem();
-                          },
-                          child: const Text("Create"),
+                        const Gap(20),
+                        FilledButton(
+                          onPressed: () =>
+                              context.read<CreateItemCubit>().onSubmitItem(),
+                          child: Text(
+                            context.read<CreateItemCubit>().state.isEditing
+                                ? 'Save'
+                                : 'Create',
+                            style: const TextStyle(
+                              fontSize: 17,
+                            ),
+                          ),
                         ),
+                        const Gap(20),
                       ],
                     ),
                   ),

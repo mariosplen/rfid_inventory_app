@@ -109,12 +109,17 @@ class CreateItemCubit extends Cubit<CreateItemState> {
     );
   }
 
-  void onTagRemoved(String value) {
+  void onTagRemoved(int value) {
     emit(
       state.copyWith(
         item: state.item.copyWith(
-          tags: state.item.tags.where((tag) => tag != value).toList(),
+          tags: List<String>.from(state.item.tags)..removeAt(value),
         ),
+        nameError: state.nameError,
+        categoryError: state.categoryError,
+        colorError: state.colorError,
+        epcError: state.epcError,
+        inventoryError: state.inventoryError,
       ),
     );
   }
