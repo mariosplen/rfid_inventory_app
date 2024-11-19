@@ -1,6 +1,10 @@
 import 'package:auto_route/annotations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:multi_select_flutter/chip_display/multi_select_chip_display.dart';
+import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
+import 'package:multi_select_flutter/util/multi_select_item.dart';
+import 'package:multi_select_flutter/util/multi_select_list_type.dart';
 import 'package:rfid_inventory_app/core/cubits/reader/reader_cubit.dart';
 import 'package:rfid_inventory_app/core/models/inventory_model.dart';
 import 'package:rfid_inventory_app/core/models/item_model.dart';
@@ -10,7 +14,7 @@ import 'package:rfid_inventory_app/features/home/cubits/inventories_cubit.dart';
 import 'package:rfid_inventory_app/features/inventory/presentation/widgets/item_card.dart';
 
 @RoutePage()
-class InventoryPage extends StatelessWidget {
+class InventoryPage extends StatefulWidget {
   const InventoryPage({
     required this.inventoryId,
     super.key,
@@ -19,73 +23,196 @@ class InventoryPage extends StatelessWidget {
   final String inventoryId;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Inventory'),
-      ),
-      body: Builder(
-        builder: (context) {
-          final inventoriesState = context.watch<InventoriesCubit>().state;
-          final readerState = context.watch<ReaderCubit>().state;
-          final inventory = inventoriesState.inventories?.firstWhere(
-            (inventory) => inventory.id == inventoryId,
-            orElse: () => InventoryModel.empty(),
-          );
+  State<InventoryPage> createState() => _InventoryPageState();
+}
 
-          return Column(
+class _InventoryPageState extends State<InventoryPage> {
+  int statusIndex = 0;
+
+  List<ItemModel> shownItems = [];
+
+  List<String> selectedTags = [];
+  List<String> selectedCategories = [];
+  List<String> selectedColors = [];
+
+  @override
+  Widget build(BuildContext context) {
+    return Builder(
+      builder: (context) {
+        final inventoriesState = context.watch<InventoriesCubit>().state;
+        final readerState = context.watch<ReaderCubit>().state;
+        final inventory = inventoriesState.inventories?.firstWhere(
+          (inventory) => inventory.id == widget.inventoryId,
+          orElse: () => InventoryModel.empty(),
+        );
+
+        final allTags = inventory?.items.expand((item) => item.tags).toSet();
+
+        final allCategories =
+            inventory?.items.map((item) => item.category).toSet();
+
+        final allColors = inventory?.items.map((item) => item.color).toSet();
+
+        final statuses = ['All', 'Detected', 'Not Detected'];
+
+        shownItems = inventory?.items.where((item) {
+              if (statusIndex == 0) {
+                return true;
+              } else if (statusIndex == 1) {
+                return readerState.tagsFound.any((tag) => tag.epc == item.epc);
+              } else {
+                return !readerState.tagsFound.any((tag) => tag.epc == item.epc);
+              }
+            }).toList() ??
+            [];
+
+        shownItems = shownItems.where((item) {
+          if (selectedTags.isNotEmpty) {
+            return item.tags.any((tag) => selectedTags.contains(tag));
+          }
+          return true;
+        }).toList();
+
+        shownItems = shownItems.where((item) {
+          if (selectedCategories.isNotEmpty) {
+            return selectedCategories.contains(item.category);
+          }
+          return true;
+        }).toList();
+
+        shownItems = shownItems.where((item) {
+          if (selectedColors.isNotEmpty) {
+            return selectedColors.contains(item.color);
+          }
+          return true;
+        }).toList();
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(inventory?.name ?? ''),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CreateInventoryPage(
+                        inventory: inventory,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () =>
+                    _onDeleteInventory(context, widget.inventoryId),
+              ),
+            ],
+          ),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(inventory?.description ?? ''),
+              Text(inventory?.location ?? ''),
+              Text(inventory?.note ?? ''),
+              const Text('Filters'),
               Row(
                 children: [
-                  Card(
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    child: Container(
-                      height: 100,
-                    ),
-                  ),
-                  Text('Name: ${inventory?.name}'),
-                  IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CreateInventoryPage(
-                            inventory: inventory,
-                          ),
-                        ),
-                      );
+                  MultiSelectDialogField(
+                    items: allCategories
+                            ?.map((category) =>
+                                MultiSelectItem(category, category))
+                            .toList() ??
+                        [],
+                    listType: MultiSelectListType.CHIP,
+                    chipDisplay: MultiSelectChipDisplay.none(),
+                    title: const Text('Categories'),
+                    buttonText: const Text('Category'),
+                    onConfirm: (values) {
+                      debugPrint("hi");
+                      setState(() {
+                        selectedCategories = [...values];
+                        1 + 1;
+                      });
                     },
+                    // onSelectionChanged: (values) {
+                    //   debugPrint("hi");
+                    //   setState(() {
+                    //     selectedCategories = values as List<String>;
+                    //   });
+                    // },
+                    // onSaved: (values) {
+                    //   debugPrint("hi");
+                    //   setState(() {
+                    //     selectedCategories = [...?values];
+                    //     1 + 1;
+                    //   });
+                    // },
+                    initialValue: selectedCategories,
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () => _onDeleteInventory(context, inventoryId),
+                  MultiSelectDialogField(
+                    items: allTags
+                            ?.map((tag) => MultiSelectItem(tag, tag))
+                            .toList() ??
+                        [],
+                    listType: MultiSelectListType.CHIP,
+                    chipDisplay: MultiSelectChipDisplay.none(),
+                    title: const Text('Tags'),
+                    buttonText: const Text('Tags'),
+                    onConfirm: (values) {
+                      setState(() {
+                        selectedTags = [...values];
+                      });
+                    },
+                    initialValue: selectedTags,
+                  ),
+                  MultiSelectDialogField(
+                    items: allColors
+                            ?.map((color) => MultiSelectItem(color, color))
+                            .toList() ??
+                        [],
+                    listType: MultiSelectListType.CHIP,
+                    chipDisplay: MultiSelectChipDisplay.none(),
+                    title: const Text('Colors'),
+                    buttonText: const Text('Color'),
+                    onConfirm: (values) {
+                      setState(() {
+                        selectedColors = [...values];
+                      });
+                    },
+                    initialValue: selectedColors,
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        statusIndex = (statusIndex + 1) % statuses.length;
+                      });
+                    },
+                    child: Text(statuses[statusIndex]),
                   ),
                 ],
               ),
-              Text('Description: ${inventory?.description}'),
-              Text('Quantity: ${inventory?.location}'),
-              Text('Price: ${inventory?.note}'),
               Expanded(
                 child: ListView(
-                  children: inventory?.items
-                          .map(
-                            (item) => ItemCard(
-                              item: item,
-                              isDetected: readerState.tagsFound
-                                  .any((tag) => tag.epc == item.epc),
-                              onDeleteTap: () => _onDeleteItem(context, item),
-                              onEditTap: () => _onEditItem(context, item),
-                            ),
-                          )
-                          .toList() ??
-                      [],
+                  children: shownItems
+                      .map(
+                        (item) => ItemCard(
+                          item: item,
+                          isDetected: readerState.tagsFound
+                              .any((tag) => tag.epc == item.epc),
+                          onDeleteTap: () => _onDeleteItem(context, item),
+                          onEditTap: () => _onEditItem(context, item),
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
