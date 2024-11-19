@@ -32,8 +32,34 @@ class HomePage extends StatelessWidget {
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.settings),
-                onPressed: () => context.router.push(const SettingsRoute()),
+                icon: const Icon(Icons.delete),
+                onPressed: () async {
+                  // context.router.push(const SettingsRoute());
+                  final result = await showDialog<bool>(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text('Delete all inventories?'),
+                        content: const Text(
+                          'This action will delete all inventories and items',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: const Text('CANCEL'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            child: const Text('DELETE'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                  if (result == true) {
+                    context.read<InventoriesCubit>().clearInventories();
+                  }
+                },
               ),
             ],
             leading: IconButton(
