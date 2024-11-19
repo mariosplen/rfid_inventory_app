@@ -73,7 +73,7 @@ class _CreateItemPageState extends State<CreateItemPage> {
       create: (context) => CreateItemCubit(
         item: (widget.item ??
                 ItemModel.empty().copyWith(epc: widget.rfidModel?.epc))
-            .copyWith(color: 'Black'),
+            .copyWith(color: widget.item?.color ?? "Black"),
         isEditing: widget.item != null,
         selectedInventoryId: selectedEntry,
       ),
