@@ -22,13 +22,13 @@ class ItemCard extends StatelessWidget {
     return Card(
       color: Theme.of(context).colorScheme.onSecondary,
       child: Container(
-        height: 180,
+        height: 220,
         padding: const EdgeInsets.fromLTRB(16, 16, 0, 16),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AspectRatio(
-              aspectRatio: 1,
+              aspectRatio: 0.8,
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
@@ -87,15 +87,17 @@ class ItemCard extends StatelessWidget {
                   ),
                   const Gap(4),
                   Expanded(
-                    child: Wrap(
-                      children: List.generate(
-                        item.tags.length,
-                        (index) => Chip(
-                          label: Text(item.tags[index]),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                    child: SingleChildScrollView(
+                      child: Wrap(
+                        children: List.generate(
+                          item.tags.length,
+                          (index) => Chip(
+                            label: Text(item.tags[index]),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: EdgeInsets.zero,
                           ),
-                          padding: EdgeInsets.zero,
                         ),
                       ),
                     ),

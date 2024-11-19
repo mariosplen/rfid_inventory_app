@@ -227,6 +227,10 @@ class _InventoryPageState extends State<InventoryPage> {
                               .tertiaryContainer
                               .withOpacity(0.5),
                         ),
+                        selectedColor: Theme.of(context).primaryColorLight,
+                        selectedItemsTextStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
                         items: allColors
                                 ?.map((color) => MultiSelectItem(color, color))
                                 .toList() ??
