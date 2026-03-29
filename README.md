@@ -114,6 +114,10 @@ This project was developed as an undergraduate thesis at the **Department of Inf
 - Large Language Models and multimodal learning (GPT, LLaMA, Gemini)
 - System requirements, design, hardware setup, and app implementation
 
+## Thesis
+
+📄 [Read the full thesis (PDF)](https://github.com/mariosplen/rfid_inventory_app/blob/main/Thesis_Marios_Plenchidis.pdf)
+
 ---
 
 ## 📃 License
